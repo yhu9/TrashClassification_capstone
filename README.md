@@ -1,0 +1,1 @@
+# TrashClassification_capstone
