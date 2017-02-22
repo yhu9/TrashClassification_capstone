@@ -77,14 +77,13 @@ if sys.argv[1] == "show":
     cv2.imshow('colored blobs',blackimg)
 
 
-
+    cv2.imwrite(fout + 'original.png',orignal)
     cv2.imwrite(fout + 'grayedImg.png',gray_img)
     cv2.imwrite(fout + 'blurredImg.png',blurred)
     cv2.imwrite(fout + 'binaryImg.png',thresh)
     cv2.imwrite(fout + 'resuts.png',img)
     cv2.imwrite(fout + 'blobs.png',blackimg)
 
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-#plt.show()
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
