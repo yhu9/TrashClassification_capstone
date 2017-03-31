@@ -10,10 +10,6 @@ import math
 from matplotlib import pyplot as plt
 #############################################################################################################
 #                               Description of Module
-#This module takes in the inputs:
-#   Mat         image
-#   np.array    markers
-#   bool        SHOW
 #
 #The output of the exported extract features function is:
 #   array([np.array,np.array,np.array], ...]    features
@@ -34,6 +30,13 @@ from matplotlib import pyplot as plt
 #############################################################################################################
 #############################################################################################################
 
+#This module takes in the inputs:
+#   Mat         image
+#   np.array    markers
+#   bool        SHOW
+#The output of the exported extract features function is:
+#   array([np.array,np.array,np.array], ...]    features
+#
 #According to http://stackoverflow.com/questions/17063042/why-do-we-convert-from-rgb-to-hsv/17063317
 #HSV is better for object recognition compared to BGR 
 def extractFeatures(imageIn, markers, SHOW):
@@ -71,7 +74,9 @@ def extractFeatures(imageIn, markers, SHOW):
                 # V max = 255
                 f = []
                 colorRange = 0
-		for i in range(3):
+                divideByZero = False
+                color = ('black','blue','red')
+		for i,col in enumerate(color):
                     if i == 0:
                         colorRange = 179
                     else:
@@ -79,11 +84,16 @@ def extractFeatures(imageIn, markers, SHOW):
 
 		    histr = cv2.calcHist([region],[i],None,[colorRange],[1,colorRange])
                     maxVal = np.max(histr)
-                    histr = histr / maxVal
+                    if maxVal != 0:
+                        histr = histr / maxVal
+                        divideByZero = False
+                    else:
+                        divideByZero = True
+                        break
                     f.append(histr.flatten())
                     ##################################
                     if SHOW:                         #
-                        plt.plot(histr,color='black')#   show flag
+                        plt.plot(histr,color=col)#   show flag
                         plt.draw()                   #
                     ##################################
                 #############################
@@ -91,7 +101,11 @@ def extractFeatures(imageIn, markers, SHOW):
 		        cv2.waitKey(time)   #   show flag
                         plt.clf()           #
                 #############################
-                features.append(f)
+                if divideByZero == False:
+                    features.append(f)
+                else:
+                    print "found invalid region"
+
 
         plt.ion()       #turns off interactive mode
 	return features
@@ -111,13 +125,12 @@ def writeFeatures(features, fnameout):
             for f in features:
                 for histogram in f:
                     for val in histogram:
-                        fout.write(",")
                         fout.write(str(val))
-                    #fout.write(",".join(map(str,histogram)))
+                        fout.write(",")
                 fout.write('\n')
 
         return True
 
 
-
+#def createAverage(features):
 
