@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #############################################################################################################
 #Masa Hu
 #
@@ -27,6 +26,9 @@ if len(sys.argv) == 4:
     extractionModule.writeFeatures(features,fnameout)
     
 else:
-    print "wrong number of files as arguments"
+    print "wrong number of files as arguments expecting 3:"
+    print "argv1 = imageFileIn"
+    print "argv2 = fnameout"
+    print "argv3 = showFlag (must be show/noshow)"
     sys.exit()
 

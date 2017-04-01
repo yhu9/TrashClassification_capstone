@@ -44,10 +44,13 @@ def extractFeatures(imageIn, markers, SHOW):
         plt.ion()       #sets plots to interactive mode
 	uniqueMarkers = np.unique(markers)
 	hsv = cv2.cvtColor(imageIn,cv2.COLOR_BGR2HSV)
+	print "-------------------------------------"
+        print "Extracting Features"
 	print "-1 is unknown regions"
-	print "---------------------------------------------------"
+	print "-------------------------------------"
 	print "-----------Unique Markers------------"
-	print uniqueMarkers
+	print "-------------------------------------"
+        print ("number of unique markers: %i" % len(uniqueMarkers))
         if SHOW:
             time = int(raw_input("How quickly do you want to see histogram creation? Type time in ms: "))
 
@@ -106,10 +109,8 @@ def extractFeatures(imageIn, markers, SHOW):
                 else:
                     print "found invalid region"
 
-
         plt.ion()       #turns off interactive mode
 	return features
-
 
 #Writes the features out to a file called extractionOut/features.txt
 def writeFeatures(features, fnameout):
@@ -130,7 +131,4 @@ def writeFeatures(features, fnameout):
                 fout.write('\n')
 
         return True
-
-
-#def createAverage(features):
 
