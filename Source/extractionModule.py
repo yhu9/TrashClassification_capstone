@@ -77,7 +77,6 @@ def extractFeatures(imageIn, markers, SHOW):
                 # V max = 255
                 f = []
                 colorRange = 0
-                divideByZero = False
                 color = ('black','blue','red')
 		for i,col in enumerate(color):
                     if i == 0:
@@ -89,10 +88,9 @@ def extractFeatures(imageIn, markers, SHOW):
                     maxVal = np.max(histr)
                     if maxVal != 0:
                         histr = histr / maxVal
-                        divideByZero = False
                     else:
-                        divideByZero = True
-                        break
+                        histr = histr
+                        #print "0 val found"
                     f.append(histr.flatten())
                     ##################################
                     if SHOW:                         #
@@ -104,10 +102,7 @@ def extractFeatures(imageIn, markers, SHOW):
 		        cv2.waitKey(time)   #   show flag
                         plt.clf()           #
                 #############################
-                if divideByZero == False:
-                    features.append(f)
-                else:
-                    print "found invalid region"
+                features.append(f)
 
         plt.ion()       #turns off interactive mode
 	return features
