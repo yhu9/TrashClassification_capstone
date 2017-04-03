@@ -1,5 +1,7 @@
 #!/bin/bash
 
+CLASS_DIR="classification"
+
 if [ "$#" -eq 2 ]
 then
   imageFileIn=$1
@@ -10,10 +12,10 @@ then
   rm tmp.txt
   rm tmp2.txt
   cat classification_accuracy.txt
-  mv classification.txt classification/classification.txt
-  mv classification_accuracy.txt classification/classification_accuracy.txt
+  mv classification.txt $CLASS_DIR/classification.txt
+  mv classification_accuracy.txt $CLASS_DIR/classification_accuracy.txt
 
-  python stichit.py $imageFileIn classification/classification.txt
+  python stichit.py $imageFileIn $CLASS_DIR/classification.txt
 
 else
   echo "wrong number of arguments. Expecting 2"

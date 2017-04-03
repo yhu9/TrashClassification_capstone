@@ -8,8 +8,6 @@
 import sys
 import re
 
-
-
 if len(sys.argv) == 4 and (sys.argv[3] == '+' or sys.argv[3] == '-'):
     filenamein = sys.argv[1]
     filenameout = sys.argv[2]

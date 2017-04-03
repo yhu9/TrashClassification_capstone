@@ -10,9 +10,7 @@ import random
 import math
 import Tkinter as tk
 from matplotlib import pyplot as plt
-#############################################################################################################
-#CONSTANTS
-K_DILATION = np.ones((3,3),np.uint8)                            #Kernal for dilation 3x3 kernal with all 1s
+############################################################################################################
 #Flag options for imread are self explanatory
 #cv2.IMREAD_GRAYSCALE
 #Cv2.IMREAD_COLOR
@@ -162,9 +160,3 @@ def getSegments(imageIn, SHOW):
 #    threshold2 - second threshold for the hysteresis procedure.
 #    apertureSize - aperture size for the Sobel() operator.
 #    L2gradient - a flag, indicating whether a more accurate L_2 norm =\sqrt{(dI/dx)^2 + (dI/dy)^2} should be used to calculate the image gradient magnitude ( L2gradient=true ), or whether the default L_1 norm =|dI/dx|+|dI/dy| is enough ( L2gradient=false ).
-#lowthresh = 0.5 * thresholdVal
-#highthresh = thresholdVal
-#edges = cv2.Canny(bF,lowthresh,highthresh, True)
-#edges = cv2.dilate(edges,K_DILATION, iterations = 1)
-#edges = cv2.bitwise_not(edges)
-#allimages["Canny Image"] = edges

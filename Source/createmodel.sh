@@ -60,16 +60,19 @@ then
   else
     shortest=$len_ingroup
   fi
-  half=$(($shortest / 2))
-  half1=$(($half + 1))
+  #half=$(($shortest / 2))
+  #half1=$(($half + 1))
 
   ##################################################################################################
   #create validation data and training data
   ##################################################################################################
-  head -n $half ingroup.txt >> "$groupname"_training.txt
-  head -n $half outgroup.txt >> "$groupname"_training.txt
-  tail -n +$half1 ingroup.txt >> "$groupname"_validation.txt
-  tail -n +$half1 outgroup.txt >> "$groupname"_validation.txt
+  
+  head -n $shortest ingroup.txt >> "$groupname"_training.txt
+  head -n $shortest outgroup.txt >> "$groupname"_training.txt
+  #head -n $half ingroup.txt >> "$groupname"_training.txt
+  #head -n $half outgroup.txt >> "$groupname"_training.txt
+  #tail -n +$half1 ingroup.txt >> "$groupname"_validation.txt
+  #tail -n +$half1 outgroup.txt >> "$groupname"_validation.txt
   rm ingroup.txt
   rm outgroup.txt
 
@@ -82,9 +85,9 @@ then
   #organize the files
   ##################################################################################################
   mkdir ./$CAT_DIR/$groupname/$TDATA_DIR
-  mkdir ./$CAT_DIR/$groupname/$VDATA_DIR
+  #mkdir ./$CAT_DIR/$groupname/$VDATA_DIR
   mv "$groupname"_training.txt ./$CAT_DIR/$groupname/$TDATA_DIR
-  mv "$groupname"_validation.txt ./$CAT_DIR/$groupname/$VDATA_DIR
+  #mv "$groupname"_validation.txt ./$CAT_DIR/$groupname/$VDATA_DIR
   mv "$groupname".model ./$MODEL_DIR
 
 else

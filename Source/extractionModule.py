@@ -30,7 +30,7 @@ from matplotlib import pyplot as plt
 #############################################################################################################
 #############################################################################################################
 
-#This module takes in the inputs:
+#The function extractFeatures() takes in the inputs:
 #   Mat         image
 #   np.array    markers
 #   bool        SHOW
@@ -114,7 +114,6 @@ def writeFeatures(features, fnameout):
         print ("expected: %s" % type([]))
         print ("length features: %i" % len(features))
         print "error with the input to the extractionModule.writeFeatures()"
-        print "expecting a populated list of np.arrays"
         return False
     else:
         with open(fnameout, 'w') as fout:

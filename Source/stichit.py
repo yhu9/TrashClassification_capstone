@@ -30,7 +30,7 @@ if len(sys.argv) == 3:
         blank = image.copy()
         blank = blank - blank
         blank[markers == -1] = UNKNOWN
-        for c,um in zip(classifications,uniquemarkers):
+        for c,um in zip(classifications,uniquemarkers[1:]):
             if  c > 0:
                 blank[markers == um] = INGROUP
             elif c <= 0:
@@ -43,10 +43,13 @@ if len(sys.argv) == 3:
         
         percentIn = 0
         if total != 0:
-            percentIn = float(num_ingroup) / float(total) * 100
+            percentIn = float(num_ingroup + num_unknown) / float(total) * 100
         else:
             percentIn = -1.0
+
+        print ""
         print ("percentage of the image in the category: %.3f%%" % percentIn)
+        print ""
 
         cv2.imshow(imageFileIn,blank)
         cv2.waitKey(0)
