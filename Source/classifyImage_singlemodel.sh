@@ -8,7 +8,7 @@ then
   modelIn=$2
   python execute.py $imageFileIn tmp.txt noshow
   python parseForSVM.py tmp.txt tmp2.txt +
-  ./svm_classify tmp2.txt $modelIn classification.txt >> classification_accuracy.txt
+  ./svm_classify tmp2.txt $modelIn classification.txt > classification_accuracy.txt
   rm tmp.txt
   rm tmp2.txt
   cat classification_accuracy.txt

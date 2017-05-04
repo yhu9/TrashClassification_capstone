@@ -40,12 +40,12 @@ then
   ##################################################################################################
   #Shuffle instances so that we get a little of each image in both the training and validation set
   ##################################################################################################
-  shuf ingroup.txt >> tmp1.txt 
+  shuf ingroup.txt > tmp1
   rm ingroup.txt
-  mv tmp1.txt ingroup.txt
-  shuf outgroup.txt >> tmp1.txt
+  mv tmp1 ingroup.txt
+  shuf outgroup.txt > tmp2
   rm outgroup.txt
-  mv tmp1.txt outgroup.txt
+  mv tmp2 outgroup.txt
   
   ##################################################################################################
   #find out which group is shortest

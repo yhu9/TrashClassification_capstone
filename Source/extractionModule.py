@@ -95,7 +95,8 @@ def extractFeatures(imageIn, markers, SHOW):
                     ##################################
                     if SHOW:                         #
                         plt.plot(histr,color=col)#   show flag
-                        plt.draw()                   #
+                        plt.draw() 
+                        plt.pause(0.00001)
                     ##################################
                 #############################
                 if SHOW:                    #
@@ -104,7 +105,7 @@ def extractFeatures(imageIn, markers, SHOW):
                 #############################
                 features.append(f)
 
-        plt.ion()       #turns off interactive mode
+        plt.ioff()       #turns off interactive mode
 	return features
 
 #Writes the features out to a file called extractionOut/features.txt

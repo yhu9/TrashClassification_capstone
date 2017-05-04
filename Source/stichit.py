@@ -6,15 +6,17 @@ import sys
 import cv2
 
 #Constants
-INGROUP=np.array([255,255,255],np.uint8)
-OUTGROUP=np.array([0,0,0],np.uint8)
-UNKNOWN=np.array([125,125,125],np.uint8)
-GROUP1=np.array([0,0,255],np.uint8)
-GROUP2=np.array([0,255,0],np.uint8)
-GROUP3=np.array([255,0,0],np.uint8)
-GROUP4=np.array([255,255,255],np.uint8)
+INGROUP=np.array([255,255,255],np.uint8)        #White
+OUTGROUP=np.array([0,0,0],np.uint8)             #Black
+UNKNOWN=np.array([125,125,125],np.uint8)        #Grey
+GROUP1=np.array([0,0,255],np.uint8)             #Red
+GROUP2=np.array([0,255,0],np.uint8)             #Green
+GROUP3=np.array([255,0,0],np.uint8)             #Blue
+GROUP4=np.array([255,255,0],np.uint8)           #Turquoise
+GROUP5=np.array([0,255,255],np.uint8)           #Yellow
+THRESHHOLD=1.0
 
-GROUPS = [GROUP1,GROUP2,GROUP3,GROUP4,UNKNOWN]
+GROUPS = [GROUP1,GROUP2,GROUP3,GROUP4,GROUP5,UNKNOWN]
 SINGLE = [INGROUP,OUTGROUP,UNKNOWN]
 
 #Local functions
@@ -23,11 +25,11 @@ SINGLE = [INGROUP,OUTGROUP,UNKNOWN]
 #findMax
 # - Finds the index of the maximum value in the list
 def findMax(args):
-    index = 0
-    tmp = 0
     if type(args) != type([]):
         return -1
 
+    index = 0
+    tmp = args[0]
     for i,a in enumerate(args):
         if a > tmp:
             index = i
@@ -35,6 +37,18 @@ def findMax(args):
 
     return index
 
+def findMin(args):
+    if type(args) != type([]):
+        return -1
+    
+    index = 0
+    tmp = args[0]
+    for i,a in enumerate(args):
+        if a < tmp:
+            index = i
+            tmp = a
+
+    return index
 
 #main program
 #
@@ -95,7 +109,7 @@ if len(sys.argv) == 3:
         print "Are you sure the classification file is for that image?"
 
 #When using multiple classifications. No more than 4
-elif len(sys.argv) > 3 and len(sys.argv) <= 6:
+elif len(sys.argv) > 3 and len(sys.argv) <= 7:
     #get command line arguments
     imageFileIn = sys.argv[1]
     classification_names = []
@@ -115,8 +129,15 @@ elif len(sys.argv) > 3 and len(sys.argv) <= 6:
             for l in lines:
                 classifications[-1].append(float(l))
 
+    same = True
+    for c in classifications:
+        for d in classifications:
+            if c != d:
+                if len(c) != len(d):
+                    same = False
+
     #If classifications are for the same image, then start stitching according to best classifier.
-    if len(classifications[0]) == len(classifications[1]) and len(classifications[2]) == len(classifications[3]) and len(classifications[1]) == len(classifications[2]):
+    if same:
         
         #make blank image
         blank = image.copy()
@@ -124,11 +145,23 @@ elif len(sys.argv) > 3 and len(sys.argv) <= 6:
         blank[markers == -1] = UNKNOWN
 
         #Color using max of the classifications. The max according to the svm is the one farthest from the Support vector line separating the different 2 group classification. The most positive is taken
-        for c1,c2,c3,c4,um in zip(classifications[0],classifications[1],classifications[2],classifications[3],uniquemarkers[1:]):
-            tmp = [c1,c2,c3,c4]
-            index = findMax(tmp)
-            #color according to the group index
-            blank[markers == um] = GROUPS[index]
+        #Handles up to 5 categories
+        length = len(classifications)
+        for index,um in enumerate(uniquemarkers[1:]):
+            tmp = []
+            #Go through each classification for that segment and record it into tmp
+            for i in range(length):
+                tmp.append(classifications[i][index])
+
+            max_index = findMax(tmp)
+            min_index = findMin(tmp)
+    
+            #Check to see if a high svm score is found. Otherwise make it 0
+            #if (max_index - min_index) > THRESHHOLD:
+                #color according to the group index
+            blank[markers == um] = GROUPS[max_index]
+            #else:
+            #    blank[markers == um] = GROUPS[-1]
 
         pixcounts = []
         total = 0
@@ -138,20 +171,20 @@ elif len(sys.argv) > 3 and len(sys.argv) <= 6:
             pixcounts.append(num)
             total += num
         
-        percent1 = float(pixcounts[0]) / float(total) * 100
-        percent2 = float(pixcounts[1]) / float(total) * 100
-        percent3 = float(pixcounts[2]) / float(total) * 100
-        percent4 = float(pixcounts[3]) / float(total) * 100
-        percent5 = float(pixcounts[4]) / float(total) * 100
-        
+        percents = []
+        for count in pixcounts:
+            percents.append(float(count) / float(total) * 100)
+
         cv2.namedWindow(imageFileIn,cv2.WINDOW_NORMAL)
         cv2.namedWindow("original", cv2.WINDOW_NORMAL)
+
+        #Print the group id, color, and its pixel percentage
         print ""
-        print (" construction waste (red): %.5f%%" % percent1)
-        print ("      tree matter (green): %.5f%%" % percent2)
-        print ("     general goods (blue): %.5f%%" % percent3)
-        print ("       trash bags (white): %.5f%%" % percent4)
-        print ("segment separators (grey): %.5f%%" % percent5)
+        colors=["red","green","blue","turquoise","yellow","grey"]
+        for i,p,c in zip(range(length),percents,colors):
+            tmp = i+1
+            print ("group %i (%s): %.5f%%" % (tmp,c,p))
+
         print ""
         cv2.imshow("original",image)
         cv2.imshow(imageFileIn,blank)
