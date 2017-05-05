@@ -16,6 +16,8 @@ GROUP4=np.array([255,255,0],np.uint8)           #Turquoise
 GROUP5=np.array([0,255,255],np.uint8)           #Yellow
 THRESHHOLD=1.0
 
+COLORS=["red","green","blue","turquoise","yellow","grey"]
+GNAMES = ["construction waste", "tree matter", "plywood", "cardboard", "trashbags"]
 GROUPS = [GROUP1,GROUP2,GROUP3,GROUP4,GROUP5,UNKNOWN]
 SINGLE = [INGROUP,OUTGROUP,UNKNOWN]
 
@@ -180,10 +182,8 @@ elif len(sys.argv) > 3 and len(sys.argv) <= 7:
 
         #Print the group id, color, and its pixel percentage
         print ""
-        colors=["red","green","blue","turquoise","yellow","grey"]
-        for i,p,c in zip(range(length),percents,colors):
-            tmp = i+1
-            print ("group %i (%s): %.5f%%" % (tmp,c,p))
+        for i,p,c in zip(GNAMES,percents,COLORS):
+            print ("%s (%s): %.5f%%" % (i,c,p))
 
         print ""
         cv2.imshow("original",image)
