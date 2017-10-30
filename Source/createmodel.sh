@@ -4,12 +4,13 @@ TDATA_DIR="trainingdata"
 VDATA_DIR="validationdata"
 MODEL_DIR="models"
 
-if [ "$#" -eq 4 ]
+if [ "$#" -ge 4 ]
 then
   groupname=$1
   ingroup_dir=$2
   outgroup_dir=$3
   showFlag=$4
+  mode=$5
 
   ##################################################################################################
   #create ingroup
@@ -17,7 +18,7 @@ then
   for inImage in $(ls ./$ingroup_dir)
   do
     echo $inImage
-    python execute.py ./$ingroup_dir/$inImage tmp1.txt $showFlag
+    python execute.py ./$ingroup_dir/$inImage tmp1.txt $showFlag $mode
     python parseForSVM.py tmp1.txt tmp2.txt +
     cat tmp2.txt >> ingroup.txt
     rm tmp1.txt
@@ -30,7 +31,7 @@ then
   for outImage in $(ls ./$outgroup_dir)
   do
     echo $outImage
-    python execute.py ./$outgroup_dir/$outImage tmp1.txt $showFlag
+    python execute.py ./$outgroup_dir/$outImage tmp1.txt $showFlag $mode
     python parseForSVM.py tmp1.txt tmp2.txt -
     cat tmp2.txt >> outgroup.txt
     rm tmp1.txt
@@ -46,7 +47,7 @@ then
   shuf outgroup.txt > tmp2
   rm outgroup.txt
   mv tmp2 outgroup.txt
-  
+
   ##################################################################################################
   #find out which group is shortest
   ##################################################################################################
@@ -66,7 +67,7 @@ then
   ##################################################################################################
   #create validation data and training data
   ##################################################################################################
-  
+
   head -n $shortest ingroup.txt >> "$groupname"_training.txt
   head -n $shortest outgroup.txt >> "$groupname"_training.txt
   #head -n $half ingroup.txt >> "$groupname"_training.txt

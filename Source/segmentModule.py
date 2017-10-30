@@ -9,6 +9,7 @@ import cv2
 import random
 import math
 import Tkinter as tk
+import pymeanshift as pms
 from matplotlib import pyplot as plt
 ############################################################################################################
 #Flag options for imread are self explanatory
@@ -20,34 +21,97 @@ from matplotlib import pyplot as plt
 allimages = {}                          #put all images in this dictionary here to show them later
 #############################################################################################################
 
+MIN_DENSITY = 500
+
 def getSegments(imageIn, SHOW):
     original = cv2.imread(imageIn,cv2.IMREAD_COLOR)
+    allimages["original"] = original
     ##############################################################################################################
     #Gray image
-    gray_img = cv2.cvtColor(original,cv2.COLOR_BGR2GRAY)
+    #gray_img = cv2.cvtColor(original,cv2.COLOR_BGR2GRAY)
+    #allimages["gray"] = gray_img
 
-    #BilateralFilter
-    #bF = cv2.bilateralFilter(gray_img,5,50,100)
-    #allimages["bF"] = bF
+    #HSV image
+    #hsv_img = cv2.cvtColor(original,cv2.COLOR_BGR2HSV)
+    #allimages["hsv"] = hsv_img
+
+    #gaussian Blur
+    #blur = cv2.GaussianBlur(gray_img,(5,5),0)
+    #allimages["gaussianBlur"] = blur
+
+    #hsv Blur
+    #hsv_blur = cv2.GaussianBlur(hsv_img,(5,5),0)
 
     #Binarize Image with OTSU's Algorithm
-    ret, binImg = cv2.threshold(gray_img,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+    #ret, binImg = cv2.threshold(blur,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+    #allimages["binImage"] = binImg
+
+    #mean shift segmentation on bgr image
+    #https://github.com/fjean/pymeanshift
+    (segmented_image,labels_image,number_regions) = pms.segment(
+            original,
+            spatial_radius=6,
+            range_radius=4.5,
+            min_density=MIN_DENSITY)
+    print(number_regions)
+    unique_labels = np.unique(labels_image)
+    blank = original - original
+    for label in unique_labels:
+        b = random.randint(0,255)
+        g = random.randint(0,255)
+        r = random.randint(0,255)
+        blank[ labels_image == label] = [b,g,r]
+    allimages["shift segmentation"] = blank
+
+
+    #laplacian filtering
+    #laplacian = cv2.Laplacian(gray_img,cv2.CV_32F)
+    #allimages["laplacian"] = laplacian
+
+    #blur laplacian
+    #blur_lap = cv2.GaussianBlur(laplacian,(5,5),10)
+    #allimages["blurred lap"] = blur_lap
+
+    #sobel
+    #sobelx = cv2.Sobel(blur_lap,cv2.CV_32F,1,0,ksize=5)
+    #sobely = cv2.Sobel(blur_lap,cv2.CV_32F,0,1,ksize=5)
+    #mag, angle = cv2.cartToPolar(sobelx, sobely, angleInDegrees=True)
+    #allimages["sobel y"] = sobely
+    #allimages["sobel x"] = sobelx
+    #allimages["sobel maginitude"] = angle
+
+    #edge detection using canny
+    #max_threshold = ret
+    #min_threshold = max_threshold * 0.5
+    #edges = cv2.Canny(blur,min_threshold,max_threshold)
+    #allimages["canny"] = edges
 
     #findContours(src, Hierarchy, Optimization)
     #RETR_LIST makes flat hierarchy of contours found
     #drawContours(outputImg, contours, hierarchy, line width)
     #-1 draws all contours found
-    contourImg, contours, hierarchy = cv2.findContours(binImg,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
-    cv2.drawContours(contourImg,contours, -1, 255,3)
-    contourImg = cv2.bitwise_not(contourImg)
+    #contourImg, contours, hierarchy = cv2.findContours(binImg,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+    #cv2.drawContours(contourImg,contours, -1, 255,3)
+    #contourImg = cv2.bitwise_not(contourImg)
+    #allimages["find Contours"] = contourImg
 
     #Find and Mark Connected Components separately. All spots found are marked > 0
-    ret, markers = cv2.connectedComponents(contourImg)
+    #ret, markers = cv2.connectedComponents(contourImg)
 
     ################################################################################
     #Marked spots are not filled completely with water. Unknown spots marked as 0 and will be filled with water first
     #Watershed algorithm using the markers. Unfilled spots after the watershed algorithm is marked with a -1
-    markers = cv2.watershed(original,markers)
+    #markers = cv2.watershed(original,markers)
+
+    #Apply markers on black image
+    #binImg = original.copy()
+    #binImg = binImg - binImg
+    #for x in range(np.max(markers) + 1):
+    #    b = random.randint(0,255)
+    #    g = random.randint(0,255)
+    #    r = random.randint(0,255)
+    #    binImg[markers == x] = [b,g,r]
+    #allimages["connected components"] = binImg
 
     ################################################################################
     ################################################################################
@@ -55,28 +119,6 @@ def getSegments(imageIn, SHOW):
     ################################################################################
     ################################################################################
     if SHOW:
-        allimages["original"] = original
-        allimages["gray"] = gray_img
-        allimages["find Contours"] = contourImg
-        binImg = original.copy()
-        binImg = binImg - binImg
-        for x in range(np.max(markers) + 1):
-            b = random.randint(0,255)
-            g = random.randint(0,255)
-            r = random.randint(0,255)
-            binImg[markers == x] = [b,g,r]
-        allimages["connected components"] = binImg
-        #Apply markers on black image
-        blackimg = original.copy()
-        blackimg = blackimg - blackimg
-        blackimg[markers == -1] = [0,0,0]
-        allimages["marked"] = blackimg
-        #Color each connected component a random color
-        for x in range(np.max(markers) + 1):
-            b = random.randint(0,255)
-            g = random.randint(0,255)
-            r = random.randint(0,255)
-            blackimg[markers == x] = [b,g,r]
 
         root = tk.Tk()
         width = root.winfo_screenwidth()
@@ -109,7 +151,7 @@ def getSegments(imageIn, SHOW):
             width = int(width / 3)
             height = int(height / 3)
             x,y = 0,0
-            imgCount =0 
+            imgCount =0
             for key,val in allimages.items():
                 row = int(imgCount % 3)
                 col = int(math.floor(imgCount / 3))
@@ -124,10 +166,8 @@ def getSegments(imageIn, SHOW):
         cv2.destroyAllWindows()
         cv2.waitKey(-1)
         cv2.imshow('',original)
-###############################################################################################################################
-###############################################################################################################################
-    
-    return original, markers
+
+    return original, labels_image
 
 ###############################################################################################################################
 ###############################################################################################################################
