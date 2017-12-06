@@ -21,39 +21,37 @@ from matplotlib import pyplot as plt
 allimages = {}                          #put all images in this dictionary here to show them later
 #############################################################################################################
 
-MIN_DENSITY = 500
+MIN_DENSITY = 50
+SPATIAL_RADIUS = 8
+RANGE_RADIUS = 6
 
-def getSegments(imageIn, SHOW):
+WIDTH = 128 * 4
+HEIGHT = 128 * 4
+
+def normalizeImage(imageIn):
     original = cv2.imread(imageIn,cv2.IMREAD_COLOR)
+
+    resized = cv2.resize(original,(WIDTH, HEIGHT), interpolation = cv2.INTER_CUBIC)
+
+    return resized
+
+def getSegments(original, SHOW):
     allimages["original"] = original
     ##############################################################################################################
-    #Gray image
-    #gray_img = cv2.cvtColor(original,cv2.COLOR_BGR2GRAY)
-    #allimages["gray"] = gray_img
-
-    #HSV image
-    #hsv_img = cv2.cvtColor(original,cv2.COLOR_BGR2HSV)
-    #allimages["hsv"] = hsv_img
 
     #gaussian Blur
     #blur = cv2.GaussianBlur(gray_img,(5,5),0)
     #allimages["gaussianBlur"] = blur
 
-    #hsv Blur
-    #hsv_blur = cv2.GaussianBlur(hsv_img,(5,5),0)
-
-    #Binarize Image with OTSU's Algorithm
-    #ret, binImg = cv2.threshold(blur,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
-    #allimages["binImage"] = binImg
-
     #mean shift segmentation on bgr image
     #https://github.com/fjean/pymeanshift
+    #http://ieeexplore.ieee.org/document/1000236/
     (segmented_image,labels_image,number_regions) = pms.segment(
             original,
-            spatial_radius=6,
-            range_radius=4.5,
+            spatial_radius=SPATIAL_RADIUS,
+            range_radius=RANGE_RADIUS,
             min_density=MIN_DENSITY)
-    print(number_regions)
+    print("Number of Regions Found: %s" % number_regions)
     unique_labels = np.unique(labels_image)
     blank = original - original
     for label in unique_labels:
@@ -61,57 +59,8 @@ def getSegments(imageIn, SHOW):
         g = random.randint(0,255)
         r = random.randint(0,255)
         blank[ labels_image == label] = [b,g,r]
+
     allimages["shift segmentation"] = blank
-
-
-    #laplacian filtering
-    #laplacian = cv2.Laplacian(gray_img,cv2.CV_32F)
-    #allimages["laplacian"] = laplacian
-
-    #blur laplacian
-    #blur_lap = cv2.GaussianBlur(laplacian,(5,5),10)
-    #allimages["blurred lap"] = blur_lap
-
-    #sobel
-    #sobelx = cv2.Sobel(blur_lap,cv2.CV_32F,1,0,ksize=5)
-    #sobely = cv2.Sobel(blur_lap,cv2.CV_32F,0,1,ksize=5)
-    #mag, angle = cv2.cartToPolar(sobelx, sobely, angleInDegrees=True)
-    #allimages["sobel y"] = sobely
-    #allimages["sobel x"] = sobelx
-    #allimages["sobel maginitude"] = angle
-
-    #edge detection using canny
-    #max_threshold = ret
-    #min_threshold = max_threshold * 0.5
-    #edges = cv2.Canny(blur,min_threshold,max_threshold)
-    #allimages["canny"] = edges
-
-    #findContours(src, Hierarchy, Optimization)
-    #RETR_LIST makes flat hierarchy of contours found
-    #drawContours(outputImg, contours, hierarchy, line width)
-    #-1 draws all contours found
-    #contourImg, contours, hierarchy = cv2.findContours(binImg,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
-    #cv2.drawContours(contourImg,contours, -1, 255,3)
-    #contourImg = cv2.bitwise_not(contourImg)
-    #allimages["find Contours"] = contourImg
-
-    #Find and Mark Connected Components separately. All spots found are marked > 0
-    #ret, markers = cv2.connectedComponents(contourImg)
-
-    ################################################################################
-    #Marked spots are not filled completely with water. Unknown spots marked as 0 and will be filled with water first
-    #Watershed algorithm using the markers. Unfilled spots after the watershed algorithm is marked with a -1
-    #markers = cv2.watershed(original,markers)
-
-    #Apply markers on black image
-    #binImg = original.copy()
-    #binImg = binImg - binImg
-    #for x in range(np.max(markers) + 1):
-    #    b = random.randint(0,255)
-    #    g = random.randint(0,255)
-    #    r = random.randint(0,255)
-    #    binImg[markers == x] = [b,g,r]
-    #allimages["connected components"] = binImg
 
     ################################################################################
     ################################################################################
@@ -119,7 +68,6 @@ def getSegments(imageIn, SHOW):
     ################################################################################
     ################################################################################
     if SHOW:
-
         root = tk.Tk()
         width = root.winfo_screenwidth()
         height = root.winfo_screenheight()
@@ -165,7 +113,6 @@ def getSegments(imageIn, SHOW):
         #http://code.opencv.org/issues/2911
         cv2.destroyAllWindows()
         cv2.waitKey(-1)
-        cv2.imshow('',original)
 
     return original, labels_image
 

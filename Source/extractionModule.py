@@ -16,14 +16,16 @@ from matplotlib import pyplot as plt
 #http://www.cim.mcgill.ca/~image529/TA529/Image529_99/assignments/edge_detection/references/sobel.htm
 K1 = [[1,2,1],[0,0,0],[-1,-2,-1]]         #horizontal
 K2 = [[1,0,-1],[2,0,-2],[1,0,-1]]         #vertical
-K3 = [[2,2,-1],[2,-1,-1],[-1,-1,-1]]      #diagnol1
-K4 = [[-1,2,2],[-1,-1,2],[-1,-1,-1]]      #diagnol2
+K3 = [[2,2,-1],[2,0,-1],[-1,-1,-1]]      #diagnol1
+K4 = [[-1,2,2],[-1,0,2],[-1,-1,-1]]      #diagnol2
+K5 = [[-1,-1,-1],[-1,0,2],[-1,2,2]]      #diagnol3
+K6 = [[-1,-1,-1],[2,0,-1],[2,2,-1]]      #diagnol4
 KERNAL1 = np.array(K1,dtype=float)/8
 KERNAL2 = np.array(K2,dtype=float)/8
 KERNAL3 = np.array(K3,dtype=float)/8
 KERNAL4 = np.array(K4,dtype=float)/8
-#KERNAL5 = np.array(K5,dtype=float)/16
-#KERNAL6 = np.array(K6,dtype=float)/16
+KERNAL5 = np.array(K5,dtype=float)/8
+KERNAL6 = np.array(K6,dtype=float)/8
 
 #############################################################################################################
 #                               Description of Module
@@ -46,12 +48,11 @@ KERNAL4 = np.array(K4,dtype=float)/8
 
 #############################################################################################################
 #############################################################################################################
-def extractFeatures(imageIn,markers,mode,SHOW):
+def extractAllSegments(imageIn,markers,mode,SHOW):
     features = []
     uniqueMarkers = np.unique(markers)
-    time = -1
-    if SHOW:
-        time = int(raw_input("How quickly do you want to see histogram creation? Type time in ms: "))
+
+    time = 0
 
     #skip 0 because thats the marker for uknown areas separating the regions
     print "-----------Unique Markers------------"
@@ -59,15 +60,84 @@ def extractFeatures(imageIn,markers,mode,SHOW):
     print ("number of unique markers: %i" % len(uniqueMarkers))
 
     if(mode == 'color'):
-        for x in uniqueMarkers[1:]:
+        for x in uniqueMarkers:
             feature = extractColorDistribution(imageIn,x,markers,SHOW,time)
-            features.append(feature)
+            features.append([feature])
     elif(mode == 'edge'):
-        for x in uniqueMarkers[1:]:
+        for x in uniqueMarkers:
             feature = extractEdgeDistribution(imageIn,x,markers,SHOW,time)
             features.append([feature])
     elif(mode == 'both'):
-        for x in uniqueMarkers[1:]:
+        for x in uniqueMarkers:
+            feature1 = extractColorDistribution(imageIn,x,markers,SHOW,time)
+            feature2 = extractEdgeDistribution(imageIn,x,markers,SHOW,time)
+
+            #create feature vector as concatenation of feature 1 and feature 2
+            feature = np.append(feature1,feature2)
+            features.append([feature])
+    return features
+
+
+#for extracting high quality features to train on using selected segments from the image
+#1. segments must greater than the average size
+def extractFeatures(imageIn,markers,mode,SHOW):
+    features = []
+    uniqueMarkers = np.unique(markers)
+
+    #get the sizes of the discovered segments
+    size_array = []
+    size_dict = {}
+    for x in uniqueMarkers:
+        count = np.count_nonzero(markers == x)
+        size_array.append(count)
+        size_dict[x] = count
+
+    #get information about the segments
+    mean = np.mean(size_array)
+    total = np.sum(size_array)
+    count = len(uniqueMarkers)
+
+    #remove markers given condition ange get unique markers again
+    for k in size_dict.keys():
+        if(size_dict[k] < mean):
+            markers[markers == k] = 0
+    uniqueMarkers = np.unique(markers)
+    reduced_count = len(uniqueMarkers)
+
+    #show the segmenting size selection process
+    if SHOW:
+        print("mean size: %s" % mean)
+        print("segment counts: %s" % count)
+        print("reduced counts: %s" % reduced_count)
+        size_array.sort()
+        size_hist = np.array(size_array)
+        subset = size_hist[size_hist > mean]
+        plt.figure(1)
+        plt.subplot(211)
+        plt.plot(size_hist,'r--')
+
+        plt.subplot(212)
+        plt.plot(subset,'r--')
+        plt.pause(0.1)
+        cv2.waitKey(0)
+
+    time = 0
+
+    #skip 0 because thats the marker for uknown areas separating the regions
+    print "-----------Unique Markers------------"
+    print "-------------------------------------"
+    print ("number of unique markers: %i" % len(uniqueMarkers))
+
+    if(mode == 'color'):
+        for x in uniqueMarkers:
+            feature = extractColorDistribution(imageIn,x,markers,SHOW,time)
+            features.append([feature])
+    elif(mode == 'edge'):
+        for x in uniqueMarkers:
+            feature = extractEdgeDistribution(imageIn,x,markers,SHOW,time)
+            features.append([feature])
+    elif(mode == 'both'):
+        for x in uniqueMarkers:
             feature1 = extractColorDistribution(imageIn,x,markers,SHOW,time)
             feature2 = extractEdgeDistribution(imageIn,x,markers,SHOW,time)
 
@@ -86,138 +156,123 @@ def extractFeatures(imageIn,markers,mode,SHOW):
 #
 #According to http://stackoverflow.com/questions/17063042/why-do-we-convert-from-rgb-to-hsv/17063317
 #HSV is better for object recognition compared to BGR
+# H max = 170
+# S max = 255
+# V max = 255
 def extractColorDistribution(imageIn, uq_mark, markers, SHOW, time):
-    plt.ion()       #sets plots to interactive mode
 
-    #hsv = cv2.cvtColor(imageIn,cv2.COLOR_BGR2HSV)
-    # make a copy of the hsv image
-    region = imageIn.copy()
+    plt.ion() #sets plots to interactive mode
+    #https://en.wikipedia.org/wiki/Color_histogram
+    #possible colors = bin^3
+    bins = 8
+    colors = np.zeros((bins,bins,bins))
 
-    #my hack for taking the subset of the image involves losing the color black on a HSV color scale
-    #   -   all spots besides those marked uq_mark is made black
-    region[markers != uq_mark] = [0,0,0]
+    #get the pixels of interest
+    region_pixels = imageIn[markers == uq_mark]
 
-    #############################################
-    if SHOW:                                    #
-        blank = region.copy()                      #   show flag
-        blank = blank - blank                   #
-        blank[markers == uq_mark] = [0,0,255]         #
-        cv2.imshow('Processing Images',blank)   #
-    #############################################
-    #extract histogram distribution of each HSV value
-    #output of calcHist is a np.array of length = ColorMax
-    # H max = 170
-    # S max = 255
-    # V max = 255
-    f = []
-    colorRange = 0
-    color = ('blue','green','red')
-    for i,col in enumerate(color):
-        if i == 0:
-            colorRange = 255
-        else:
-            colorRange = 255
+    #create the histogram of n^3 colors
+    for pixel in region_pixels:
+        #color = ('blue','green','red')
+        b = pixel[0]
+        g = pixel[1]
+        r = pixel[2]
 
-        histr = cv2.calcHist([region],[i],None,[colorRange],[1,colorRange])
-        maxVal = np.max(histr)
-        if maxVal != 0:
-            histr = histr / maxVal
-        else:
-            histr = histr
-            #print "0 val found"
-        f.append(histr.flatten())
-        ##################################
-        if SHOW:                         #
-            plt.plot(histr,color=col)#   show flag
-            plt.draw()
-            plt.pause(0.00001)
-        ##################################
-    #############################
-    if SHOW:                    #
+        bbin = int(float(b) / float(256/bins))
+        gbin = int(float(g) / float(256/bins))
+        rbin = int(float(r) / float(256/bins))
+
+        colors[bbin][gbin][rbin] += 1
+
+    #flatten the 3-d feature fector into 1-d
+    hist = colors.flatten()
+    hist = hist / np.amax(hist)
+
+    #show the results
+    if SHOW:
+        region = imageIn.copy()
+        region[markers != uq_mark] = [0,0,0]
+        cv2.namedWindow('Processing Segment',cv2.WINDOW_NORMAL)
+        cv2.imshow('Processing Segment',region)   #
+        plt.plot(hist)
+        plt.draw()
+        plt.pause(0.1)
         cv2.waitKey(time)   #   show flag
-        plt.clf()           #
-    #############################
+        plt.clf()
 
-    plt.ioff()       #turns off interactive mode
-    return f
+    plt.ioff()
+
+    return hist
 
 #extract the edge distribution from the image segment
 def extractEdgeDistribution(imageIn, uq_mark, markers, SHOW, time):
+    #necessary for seeing the plots in sequence with one click of a key
+    plt.ion() #sets plots to interactive mode
 
-    gray = cv2.cvtColor(imageIn,cv2.COLOR_BGR2GRAY)
+    # make  copy of the image
+    region = imageIn.copy()
+    region[markers != uq_mark] = [0,0,0]
 
-    # make a copy of the hsv image
-    region = gray.copy()
+    #get just the region and remove the rest
+    blank = region.copy()                      #   show flag
+    blank = blank - blank                   #
+    blank[markers == uq_mark] = [255,255,255]         #
 
-    #all spots besides those marked uq_mark is made black and uq_mark is made white
-    region[markers != uq_mark] = [0]
-    region[markers == uq_mark] = [255]
+    #get the bounding rectangle of the image crop the region with a green border
+    grey = cv2.cvtColor(blank,cv2.COLOR_BGR2GRAY)
+    x,y,w,h = cv2.boundingRect(grey)
+    cv2.rectangle(region,(x,y),(x+w,y+h),(0,255,0),2)
+    cropped = region[y:y+h,x:x+w]
+    cropped = np.uint8(cropped)
 
-    #detect edges perhaps use thresholding here for automatic choice of threshold
-    min_threshold = 100
-    max_threshold = 200
-    edges = cv2.Canny(region,min_threshold,max_threshold)
+    new_w = ((int(w) / int(16)) + 1 ) * 16
+    new_h = ((int(h) / int(16)) + 1 ) * 16
 
-    #pad the image
-    padded_region = np.pad(region,10,'constant')
-    padded_edges = np.pad(edges,10,'constant')
+    #resize the image to 64 x 128
+    resized = cv2.resize(cropped,(new_w, new_h), interpolation = cv2.INTER_CUBIC)
+    height,width,channel = resized.shape
 
-    #get edge locations ((x1,x2,x3,...),(y1,y2,y3,...))
-    edge_locations = np.where(padded_edges == 255)
+    #HOG DESCRIPTOR INITILIZATION
+    #https://stackoverflow.com/questions/28390614/opencv-hogdescripter-python
+    #https://docs.opencv.org/2.4/modules/gpu/doc/object_detection.html
+    #https://www.learnopencv.com/histogram-of-oriented-gradients/
+    winSize = (width,height)                               #
+    blockSize = (16,16)                             #only 16x16 block size supported for normalization
+    blockStride = (8,8)                             #only 8x8 block stride supported
+    cellSize = (8,8)                                #individual cell size should be 1/4 of the block size
+    nbins = 9                                       #only 9 supported over 0 - 180 degrees
+    derivAperture = 1                               #
+    winSigma = 4.                                   #
+    histogramNormType = 0                           #
+    L2HysThreshold = 2.0000000000000001e-01         #L2 normalization exponent ex: sqrt(x^L2 + y^L2 + z^L2)
+    gammaCorrection = 0                             #
+    nlevels = 64                                    #
+    hog = cv2.HOGDescriptor(winSize,blockSize,blockStride,cellSize,nbins,derivAperture,winSigma,
+                                    histogramNormType,L2HysThreshold,gammaCorrection,nlevels)
 
+    hist = hog.compute(resized)
+
+    #create the feature vector
+    feature = []
+    for i in range(nbins * 4):
+        feature.append(0)
+    for i in range(len(hist)):
+        feature[i % (nbins * 4)] += hist[i]
+    feature_hist = np.array(feature)
+    feature_hist = feature / np.amax(feature)
+
+    #show the results of the HOG distribution for the section
     if(SHOW):
-        cv2.imshow('region of interest',region)
-        cv2.imshow('detected edges',edges)
-
-    #initialize kernal counting histogram
-    histogram = [0,0,0,0]
-    ksize = 3
-    for x,y in zip(edge_locations[0],edge_locations[1]):
-
-        #get window slice with edge_location as center
-        low = (int)(ksize/2)
-        high = ksize - low
-        window_slice = padded_region[x-low:x+high,y-low:y+high]
-
-        #use the kernals
-        #convolution applied to all pixels in the slice and I can't stop it.
-        filters = []
-        filter1 = cv2.filter2D(window_slice,-1,KERNAL1)
-        filter2 = cv2.filter2D(window_slice,-1,KERNAL2)
-        filter3 = cv2.filter2D(window_slice,-1,KERNAL3)
-        filter4 = cv2.filter2D(window_slice,-1,KERNAL4)
-        filters.append(filter1)
-        filters.append(filter2)
-        filters.append(filter3)
-        filters.append(filter4)
-
-        #get center value of the filtered slice
-        cx = (int)(ksize/2)
-        cy = cx
-        vals = []
-        for f in filters:
-            val = abs(f[cx][cy])
-            vals.append(val)
-
-        #get the index of the max val
-        index = vals.index(max(vals))
-
-        #increment the histogram
-        histogram[index] += 1
-
-
-    #normalize the values in the histogram with the max so values fall between 0-1
-    feature = np.array(histogram,np.float32)/max(histogram)
-
-    if(SHOW):                         #
-        plt.plot(feature,color='red')#   show flag
+        cv2.namedWindow('Processing Segment',cv2.WINDOW_NORMAL)
+        cv2.imshow('Processing Segment',region)   #
+        plt.plot(feature_hist)
         plt.draw()
+        plt.pause(0.1)
         cv2.waitKey(time)   #   show flag
-        plt.show()
+        plt.clf()
 
+    plt.ioff()
 
-    return feature
-
+    return feature_hist
 
 #Writes the features out to a file called extractionOut/features.txt
 def writeFeatures(features, fnameout):

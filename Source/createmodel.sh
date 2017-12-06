@@ -3,6 +3,11 @@ CAT_DIR="categories"
 TDATA_DIR="trainingdata"
 VDATA_DIR="validationdata"
 MODEL_DIR="models"
+SVM_MODE=2
+#http://svmlight.joachims.org/
+#linear model = 0
+#polynomial = 1
+#radial = 2
 
 if [ "$#" -ge 4 ]
 then
@@ -11,6 +16,7 @@ then
   outgroup_dir=$3
   showFlag=$4
   mode=$5
+  out_name="$1_$5"
 
   ##################################################################################################
   #create ingroup
@@ -68,8 +74,8 @@ then
   #create validation data and training data
   ##################################################################################################
 
-  head -n $shortest ingroup.txt >> "$groupname"_training.txt
-  head -n $shortest outgroup.txt >> "$groupname"_training.txt
+  head -n $shortest ingroup.txt >> "$out_name"_training.txt
+  head -n $shortest outgroup.txt >> "$out_name"_training.txt
   #head -n $half ingroup.txt >> "$groupname"_training.txt
   #head -n $half outgroup.txt >> "$groupname"_training.txt
   #tail -n +$half1 ingroup.txt >> "$groupname"_validation.txt
@@ -80,16 +86,16 @@ then
   ##################################################################################################
   #create model
   ##################################################################################################
-  ./svm_learn "$groupname"_training.txt "$groupname".model
+  ./svm_learn -t $SVM_MODE "$out_name"_training.txt "$out_name".model
 
   ##################################################################################################
   #organize the files
   ##################################################################################################
   mkdir ./$CAT_DIR/$groupname/$TDATA_DIR
   #mkdir ./$CAT_DIR/$groupname/$VDATA_DIR
-  mv "$groupname"_training.txt ./$CAT_DIR/$groupname/$TDATA_DIR
+  mv "$out_name"_training.txt ./$CAT_DIR/$groupname/$TDATA_DIR
   #mv "$groupname"_validation.txt ./$CAT_DIR/$groupname/$VDATA_DIR
-  mv "$groupname".model ./$MODEL_DIR
+  mv "$out_name".model ./$MODEL_DIR
 
 else
   echo "wrong number of arguments passed. Expecting:"

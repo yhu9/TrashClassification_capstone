@@ -22,7 +22,8 @@ if len(sys.argv) >= 4:
         print("image file name or file name out is empty")
         sys.exit()
 
-    image, markers = segmentModule.getSegments(imageFileIn,showFlag)
+    output = segmentModule.normalizeImage(imageFileIn)
+    image, markers = segmentModule.getSegments(output,showFlag)
     features = extractionModule.extractFeatures(image,markers,mode,showFlag)
     extractionModule.writeFeatures(features,fnameout)
 

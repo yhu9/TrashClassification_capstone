@@ -13,12 +13,11 @@ GROUP1=np.array([0,0,255],np.uint8)             #Red
 GROUP2=np.array([0,255,0],np.uint8)             #Green
 GROUP3=np.array([255,0,0],np.uint8)             #Blue
 GROUP4=np.array([255,255,0],np.uint8)           #Turquoise
-GROUP5=np.array([0,255,255],np.uint8)           #Yellow
 THRESHHOLD=1.0
 
-COLORS=["red","green","blue","turquoise","yellow","grey"]
-GNAMES = ["construction waste", "tree matter", "plywood", "cardboard", "trashbags"]
-GROUPS = [GROUP1,GROUP2,GROUP3,GROUP4,GROUP5,UNKNOWN]
+COLORS=["red","green","blue","turquoise","grey"]
+GNAMES = ["construction waste", "tree matter", "plywood", "cardboard"]
+GROUPS = [GROUP1,GROUP2,GROUP3,GROUP4,UNKNOWN]
 SINGLE = [INGROUP,OUTGROUP,UNKNOWN]
 
 #Local functions
@@ -42,7 +41,7 @@ def findMax(args):
 def findMin(args):
     if type(args) != type([]):
         return -1
-    
+
     index = 0
     tmp = args[0]
     for i,a in enumerate(args):
@@ -53,8 +52,6 @@ def findMin(args):
     return index
 
 #main program
-#
-
 #When using a single classification
 if len(sys.argv) == 3:
     imageFileIn = sys.argv[1]
@@ -63,7 +60,8 @@ if len(sys.argv) == 3:
     #initialize image, markers using segmentModule
     #initialize classifications using classificationsIn
     #segmentModule.getSegments always produces the same result so this works. Since classification for each segment is known using same function in execute.py.
-    image, markers = segmentModule.getSegments(imageFileIn, False)
+    original = segmentModule.normalizeImage(imageFileIn)
+    image, markers = segmentModule.getSegments(original, False)
     uniquemarkers = np.unique(markers)
     classifications = []
     with open(classificationsIn,'r') as cin:
@@ -71,18 +69,17 @@ if len(sys.argv) == 3:
         for l in lines:
             classifications.append(float(l))
 
-    if len(classifications) == len(uniquemarkers[1:]):
+    if len(classifications) == len(uniquemarkers):
 
         blank = image.copy()
         blank = blank - blank
         blank[markers == -1] = UNKNOWN
-        for c,um in zip(classifications,uniquemarkers[1:]):
+        for c,um in zip(classifications,uniquemarkers):
             if  c > 0:
                 blank[markers == um] = INGROUP
             elif c <= 0:
                 blank[markers == um] = OUTGROUP
-        
-        
+
         total = 0
         pixcounts = []
         for group in SINGLE:
@@ -110,18 +107,19 @@ if len(sys.argv) == 3:
     else:
         print "Are you sure the classification file is for that image?"
 
-#When using multiple classifications. No more than 4
+#When using multiple classifications. No more than 6
 elif len(sys.argv) > 3 and len(sys.argv) <= 7:
     #get command line arguments
     imageFileIn = sys.argv[1]
     classification_names = []
     for fname in sys.argv[2:]:
         classification_names.append(fname)
-    
+
     #recreate markers
-    image, markers = segmentModule.getSegments(imageFileIn, False)
+    original = segmentModule.normalizeImage(imageFileIn)
+    image, markers = segmentModule.getSegments(original, False)
     uniquemarkers = np.unique(markers)
-    
+
     #get classfications for segments from command line arguments
     classifications = []
     for fname in classification_names:
@@ -140,7 +138,6 @@ elif len(sys.argv) > 3 and len(sys.argv) <= 7:
 
     #If classifications are for the same image, then start stitching according to best classifier.
     if same:
-        
         #make blank image
         blank = image.copy()
         blank = blank - blank
@@ -149,7 +146,7 @@ elif len(sys.argv) > 3 and len(sys.argv) <= 7:
         #Color using max of the classifications. The max according to the svm is the one farthest from the Support vector line separating the different 2 group classification. The most positive is taken
         #Handles up to 5 categories
         length = len(classifications)
-        for index,um in enumerate(uniquemarkers[1:]):
+        for index,um in enumerate(uniquemarkers):
             tmp = []
             #Go through each classification for that segment and record it into tmp
             for i in range(length):
@@ -157,7 +154,7 @@ elif len(sys.argv) > 3 and len(sys.argv) <= 7:
 
             max_index = findMax(tmp)
             min_index = findMin(tmp)
-    
+
             #Check to see if a high svm score is found. Otherwise make it 0
             #if (max_index - min_index) > THRESHHOLD:
                 #color according to the group index
@@ -172,7 +169,7 @@ elif len(sys.argv) > 3 and len(sys.argv) <= 7:
             num = cv2.countNonZero(tmp)
             pixcounts.append(num)
             total += num
-        
+
         percents = []
         for count in pixcounts:
             percents.append(float(count) / float(total) * 100)
@@ -194,7 +191,7 @@ elif len(sys.argv) > 3 and len(sys.argv) <= 7:
         print "classifications are not the same length"
 
 else:
-    print "wrong number of arguments passed. Expecting 2 or 5:"
+    print "wrong number of arguments passed. Expecting 3 or 6:"
     print "arg1 = imageFileIn"
     print "arg2 = classification1"
     print "arg3 = classification2"
