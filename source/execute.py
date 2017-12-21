@@ -32,5 +32,6 @@ else:
     print "argv1 = imageFileIn"
     print "argv2 = fnameout"
     print "argv3 = showFlag (must be show/noshow)"
+    print "argv4 = mode (color,edge,both)"
     sys.exit()
 
