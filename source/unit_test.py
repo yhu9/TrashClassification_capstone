@@ -36,6 +36,11 @@ def test_getSegments(imageFileIn,showFlag):
     output = segmentModule.normalizeImage(imageFileIn)
     image, markers = segmentModule.getSegments(output,showFlag)
 
+def test_saveSegments():
+    image = segmentModule.normalizeImage("categories/test_images/Square.png")
+    SHOW = False
+    original, labels = segmentModule.getSegments(image,SHOW)
+    segmentModule.saveSegments(original,labels)
 
 def create_histogram():
     image = np.array([2,4,5,6])
@@ -47,18 +52,16 @@ def create_histogram():
 def test_playground():
     print "hello world"
 
+
+test_saveSegments()
 #test_playground()
 #test_extractEdgeDistribution("categories/test_images/TestImages/Square.png","SHOW")
 #test_extractColorDistribution("categories/test_images/TestImages/Circle.png","SHOW")
 #test_extractEdgeDistribution("lena3.jpg","SHOW")
 #test_extractColorDistribution("lena3.jpg","SHOW")
 #test_getSegments("lena3.jpg","SHOW")
-#test_getSegments("/home/masa/Projects/TrashClassification_capstone/Source/MixedB30_C30_T30Sample1.jpg","SHOW")
-
-test_getSegments("/home/masa/Projects/TrashClassification_capstone/Source/CervicalCells/image1.png","SHOW")
-
+#test_getSegments("/home/masa/Projects/TrashClassification_capstone/Source/CervicalCells/image1.png","SHOW")
 #test_extractColorDistribution("/home/masa/Projects/TrashClassification_capstone/Source/categories/treematter/ingroup/treematter1.jpg","SHOW")
-
 #test_extractEdgeDistribution("/home/masa/Projects/TrashClassification_capstone/Source/categories/test_images/Rect.png","SHOW")
 #test_extractEdgeDistribution("/home/masa/Projects/TrashClassification_capstone/Source/categories/test_images/Rect2.png","SHOW")
 #test_extractEdgeDistribution("/home/masa/Projects/TrashClassification_capstone/Source/categories/test_images/Square.png","SHOW")

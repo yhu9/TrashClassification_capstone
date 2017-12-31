@@ -35,6 +35,60 @@ def normalizeImage(imageIn):
 
     return resized
 
+#saves the segments of the original image as png files given the labels
+def saveSegments(original,labels):
+
+    unique_labels = np.unique(labels)
+    for l in unique_labels:
+        segment = original
+        segment[labels != l] = [0,0,0]
+        blank = original - original
+        blank[labels == l] = [255,255,255]
+
+        grey = cv2.cvtColor(blank,cv2.COLOR_BGR2GRAY)
+        x,y,w,h = cv2.boundingRect(blank)
+        cv2.rectangle(segment,(x,y),(x+w,y+h),(0,255,0),2)
+        cropped = region[y:y+h,x:x+w]
+        cropped = np.uint8(cropped)
+        resized = cv2.resize(cropped,(256, 256), interpolation = cv2.INTER_CUBIC)
+
+        plt.plot(resized)
+        plt.show()
+
+
+
+
+###############################################################################################################################
+###############################################################################################################################
+#Documentation
+########################################################################
+#BilateralFilter
+########################################################################
+#http://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html?highlight=bilateralfilter#bilateralfilter
+########################################################################
+#Prameters:
+#    src - src image
+#    dst - Destination image of the same size and type as src .
+#    d - Diameter of each pixel neighborhood that is used during filtering. If it is non-positive, it is computed from sigmaSpace .
+#    sigmaColor - Filter sigma in the color space. A larger value of the parameter means that farther colors within the pixel neighborhood (see sigmaSpace ) will be mixed together, resulting in larger areas of semi-equal color.
+#    sigmaSpace - Filter sigma in the coordinate space. A larger value of the parameter means that farther pixels will influence each other as long as their colors are close enough (see sigmaColor ). When d>0 , it specifies the neighborhood size regardless of sigmaSpace . Otherwise, d is proportional to sigmaSpace .
+#
+# bilateralFilter(src, d, sigmaColor, sigmaSpace)
+
+
+########################################################################
+
+########################################################################
+#Canny image
+#http://docs.opencv.org/2.4/modules/imgproc/doc/feature_detection.html?highlight=canny
+########################################################################
+#Parameters:
+#    image - single-channel 8-bit input image.
+#    edges - output edge map; it has the same size and type as image .
+#    threshold1 - first threshold for the hysteresis procedure.
+#    threshold2 - second threshold for the hysteresis procedure.
+#    apertureSize - aperture size for the Sobel() operator.
+#    L2gradient - a flag, indicating whether a more accurate L_2 norm =\sqrt{(dI/dx)^2 + (dI/dy)^2} should be used to calculate the image gradient magnitude ( L2gradient=true ), or whether the default L_1 norm =|dI/dx|+|dI/dy| is enough ( L2gradient=false ).
 def getSegments(original, SHOW):
     allimages["original"] = original
     ##############################################################################################################
@@ -116,34 +170,3 @@ def getSegments(original, SHOW):
 
     return original, labels_image
 
-###############################################################################################################################
-###############################################################################################################################
-#Documentation
-########################################################################
-#BilateralFilter
-########################################################################
-#http://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html?highlight=bilateralfilter#bilateralfilter
-########################################################################
-#Prameters:
-#    src - src image
-#    dst - Destination image of the same size and type as src .
-#    d - Diameter of each pixel neighborhood that is used during filtering. If it is non-positive, it is computed from sigmaSpace .
-#    sigmaColor - Filter sigma in the color space. A larger value of the parameter means that farther colors within the pixel neighborhood (see sigmaSpace ) will be mixed together, resulting in larger areas of semi-equal color.
-#    sigmaSpace - Filter sigma in the coordinate space. A larger value of the parameter means that farther pixels will influence each other as long as their colors are close enough (see sigmaColor ). When d>0 , it specifies the neighborhood size regardless of sigmaSpace . Otherwise, d is proportional to sigmaSpace .
-#
-# bilateralFilter(src, d, sigmaColor, sigmaSpace)
-
-
-########################################################################
-
-########################################################################
-#Canny image
-#http://docs.opencv.org/2.4/modules/imgproc/doc/feature_detection.html?highlight=canny
-########################################################################
-#Parameters:
-#    image - single-channel 8-bit input image.
-#    edges - output edge map; it has the same size and type as image .
-#    threshold1 - first threshold for the hysteresis procedure.
-#    threshold2 - second threshold for the hysteresis procedure.
-#    apertureSize - aperture size for the Sobel() operator.
-#    L2gradient - a flag, indicating whether a more accurate L_2 norm =\sqrt{(dI/dx)^2 + (dI/dy)^2} should be used to calculate the image gradient magnitude ( L2gradient=true ), or whether the default L_1 norm =|dI/dx|+|dI/dy| is enough ( L2gradient=false ).
