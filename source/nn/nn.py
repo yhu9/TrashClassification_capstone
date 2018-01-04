@@ -25,6 +25,7 @@ import constants
 import random
 import sys
 import re
+import os
 
 #import MNIST data
 from tensorflow.examples.tutorials.mnist import input_data
@@ -56,7 +57,7 @@ tf.logging.set_verbosity(tf.logging.INFO)
 #inputs are 1d extracted feature vectors
 #labels are one hot
 #returns inputs and labels
-def read_training():
+def read_training_txt():
     inputs = []
     labels = []
     for f in sys.argv[3:]:
@@ -103,6 +104,92 @@ def read_training():
     #return the created content
     return np.array(train_set),np.array(train_labels),np.array(test_set),np.array(test_labels)
 
+#reads in training images
+#all training images must be passed when calling nn.py
+def read_training_img(directory):
+    inputs = []
+    labels = []
+    args = os.listdir(directory)
+
+    if(len(args) > 0):
+        for f in args:
+            full_dir = directory + f;
+            img = cv2.imread(full_dir,cv2.IMREAD_COLOR)
+            inputs.append(img)
+
+            group = re.findall("treematter|construction|cardboard|plywood",f)
+
+            if(group[0] == constants.CAT1):
+                labels.append(constants.CAT1_ONEHOT)
+            elif(group[0] == constants.CAT2):
+                labels.append(constants.CAT2_ONEHOT)
+            elif(group[0] == constants.CAT3):
+                labels.append(constants.CAT3_ONEHOT)
+            elif(group[0] == constants.CAT4):
+                labels.append(constants.CAT4_ONEHOT)
+            else:
+                print(group[0])
+
+    else:
+        print('error no file found')
+        sys.exit()
+
+    #shuffle the contents
+    c = zip(inputs,labels)
+    random.shuffle(c)
+    inputs,labels = zip(*c)
+
+    #use the last 1/5 of the inputs and labels for testing accuracy
+    n = len(inputs)
+    split = (int)(0.8 * float(n))
+    train_set = inputs[:split]
+    train_labels = labels[:split]
+    test_set = inputs[split + 1:]
+    test_labels = labels[split + 1:]
+
+    #return the created content
+    return np.array(train_set),np.array(train_labels),np.array(test_set),np.array(test_labels)
+
+
+#reads in training image for cnn using pixel data as the training set
+#5x5, 11x11, 25x25 surrounding area of each pixel used for training
+#all training images must be passed when calling nn.py
+def cnn_readOneImg(image_dir):
+    inputs = []
+    labels = []
+
+    img = cv2.imread(image_dir,cv2.IMREAD_COLOR)
+
+    inputs.append(img)
+
+    group = re.findall("treematter|construction|cardboard|plywood",f)
+
+    if(group[0] == constants.CAT1):
+        labels.append(constants.CAT1_ONEHOT)
+    elif(group[0] == constants.CAT2):
+        labels.append(constants.CAT2_ONEHOT)
+    elif(group[0] == constants.CAT3):
+        labels.append(constants.CAT3_ONEHOT)
+    elif(group[0] == constants.CAT4):
+        labels.append(constants.CAT4_ONEHOT)
+    else:
+        print(group[0])
+
+    #shuffle the contents
+    c = zip(inputs,labels)
+    random.shuffle(c)
+    inputs,labels = zip(*c)
+
+    #use the last 1/5 of the inputs and labels for testing accuracy
+    n = len(inputs)
+    split = (int)(0.8 * float(n))
+    train_set = inputs[:split]
+    train_labels = labels[:split]
+    test_set = inputs[split + 1:]
+    test_labels = labels[split + 1:]
+
+    #return the created content
+    return np.array(train_set),np.array(train_labels),np.array(test_set),np.array(test_labels)
 def read_unknown():
     inputs = []
     for f in sys.argv[1:]:

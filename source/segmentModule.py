@@ -36,27 +36,58 @@ def normalizeImage(imageIn):
     return resized
 
 #saves the segments of the original image as png files given the labels
-def saveSegments(original,labels):
+def saveSegments(original,labels,SHOW,out_dir,category):
 
     unique_labels = np.unique(labels)
-    for l in unique_labels:
-        segment = original
+
+    #get the sizes of the discovered segments
+    size_array = []
+    size_dict = {}
+    for x in unique_labels:
+        count = np.count_nonzero(labels == x)
+        size_array.append(count)
+        size_dict[x] = count
+
+    #get information about the segments
+    mean = np.mean(size_array)
+    total = np.sum(size_array)
+    count = len(unique_labels)
+
+    #remove markers given condition ange get unique markers again
+    for k in size_dict.keys():
+        if(size_dict[k] < mean):
+            labels[labels == k] = 0
+    unique_labels = np.unique(labels)
+    reduced_count = len(unique_labels)
+
+    count = 0
+    for l in unique_labels[1:]:
+        segment = original.copy()
         segment[labels != l] = [0,0,0]
-        blank = original - original
+
+        blank = original.copy()
+        blank = blank - blank
         blank[labels == l] = [255,255,255]
 
         grey = cv2.cvtColor(blank,cv2.COLOR_BGR2GRAY)
-        x,y,w,h = cv2.boundingRect(blank)
-        cv2.rectangle(segment,(x,y),(x+w,y+h),(0,255,0),2)
-        cropped = region[y:y+h,x:x+w]
+        x,y,w,h = cv2.boundingRect(grey)
+        cropped = segment[y:y+h,x:x+w]
         cropped = np.uint8(cropped)
         resized = cv2.resize(cropped,(256, 256), interpolation = cv2.INTER_CUBIC)
+        img = cv2.cvtColor(resized,cv2.COLOR_BGR2RGB)
 
-        plt.plot(resized)
-        plt.show()
+        f_out =  out_dir + category + str(count) + '.png'
 
+        fig = plt.figure()
+        plt.imshow(img)
+        fig.savefig(f_out)
+        if(SHOW):
+            plt.show()
+        plt.close(fig)
 
+        count = count + 1
 
+    print("reduced count: " + count)
 
 ###############################################################################################################################
 ###############################################################################################################################

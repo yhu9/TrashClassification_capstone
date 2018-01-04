@@ -5,6 +5,7 @@ import numpy as np
 import random
 import cv2
 import math
+import os
 from matplotlib import pyplot as plt
 
 # Tests getting the color histogram distribution feature from the largest region from the lena image
@@ -36,11 +37,17 @@ def test_getSegments(imageFileIn,showFlag):
     output = segmentModule.normalizeImage(imageFileIn)
     image, markers = segmentModule.getSegments(output,showFlag)
 
-def test_saveSegments():
-    image = segmentModule.normalizeImage("categories/test_images/Square.png")
-    SHOW = False
-    original, labels = segmentModule.getSegments(image,SHOW)
-    segmentModule.saveSegments(original,labels)
+def test_saveSegments(img_dir,category):
+
+    args = os.listdir(img_dir)
+    for f in args:
+        full_dir = img_dir + f
+
+    out_dir = 'segments/'
+
+    image = segmentModule.normalizeImage("lena3.jpg")
+    original, labels = segmentModule.getSegments(image,False)
+    segmentModule.saveSegments(original,labels,False,out_dir,category)
 
 def create_histogram():
     image = np.array([2,4,5,6])
@@ -50,22 +57,25 @@ def create_histogram():
 
 ####################################################################################################
 def test_playground():
-    print "hello world"
+    img1 = cv2.imread(sys.argv[1],cv2.IMREAD_COLOR)
+    img2 = cv2.imread(sys.argv[2],cv2.IMREAD_COLOR)
+    img3 = cv2.imread(sys.argv[3],cv2.IMREAD_COLOR)
+    img4 = cv2.imread(sys.argv[4],cv2.IMREAD_COLOR)
 
+    topleft = cv2.resize(img1,(500,500),interpolation = cv2.INTER_CUBIC)
+    topright= cv2.resize(img2,(500,500),interpolation = cv2.INTER_CUBIC)
+    bottomleft = cv2.resize(img3,(500,500),interpolation = cv2.INTER_CUBIC)
+    bottomright = cv2.resize(img4,(500,500),interpolation = cv2.INTER_CUBIC)
 
-test_saveSegments()
+    toprow = np.concatenate((topleft,topright),axis = 1)
+    bottomrow = np.concatenate((bottomleft,bottomright),axis = 1)
+    full_img = np.concatenate((toprow,bottomrow),axis = 0)
+
+    img = cv2.cvtColor(full_img,cv2.COLOR_BGR2RGB)
+
+    plt.imshow(img)
+    plt.show()
+
 #test_playground()
-#test_extractEdgeDistribution("categories/test_images/TestImages/Square.png","SHOW")
-#test_extractColorDistribution("categories/test_images/TestImages/Circle.png","SHOW")
-#test_extractEdgeDistribution("lena3.jpg","SHOW")
-#test_extractColorDistribution("lena3.jpg","SHOW")
-#test_getSegments("lena3.jpg","SHOW")
-#test_getSegments("/home/masa/Projects/TrashClassification_capstone/Source/CervicalCells/image1.png","SHOW")
-#test_extractColorDistribution("/home/masa/Projects/TrashClassification_capstone/Source/categories/treematter/ingroup/treematter1.jpg","SHOW")
-#test_extractEdgeDistribution("/home/masa/Projects/TrashClassification_capstone/Source/categories/test_images/Rect.png","SHOW")
-#test_extractEdgeDistribution("/home/masa/Projects/TrashClassification_capstone/Source/categories/test_images/Rect2.png","SHOW")
-#test_extractEdgeDistribution("/home/masa/Projects/TrashClassification_capstone/Source/categories/test_images/Square.png","SHOW")
-#test_extractEdgeDistribution("/home/masa/Projects/TrashClassification_capstone/Source/categories/test_images/Circle.png","SHOW")
-#test_extractEdgeDistribution("/home/masa/Projects/TrashClassification_capstone/Source/categories/test_images/Diamond.png","SHOW")
-#test_extractEdgeDistribution("/home/masa/Projects/TrashClassification_capstone/Source/categories/test_images/Star.png","SHOW")
+test_saveSegments(sys.argv[1],sys.argv[2])
 
