@@ -8,5 +8,5 @@ done
 
 echo "processing files: $fnames"
 
-python nn.py train nn $fnames
+python nn.py train nn resources/
 #python nn.py train nn

@@ -20,6 +20,21 @@ from matplotlib import pyplot as plt
 #Global Variables
 allimages = {}                          #put all images in this dictionary here to show them later
 #############################################################################################################
+###############################################################################################################################
+#Documentation
+########################################################################
+#BilateralFilter
+########################################################################
+#http://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html?highlight=bilateralfilter#bilateralfilter
+########################################################################
+#Prameters:
+#    src - src image
+#    dst - Destination image of the same size and type as src .
+#    d - Diameter of each pixel neighborhood that is used during filtering. If it is non-positive, it is computed from sigmaSpace .
+#    sigmaColor - Filter sigma in the color space. A larger value of the parameter means that farther colors within the pixel neighborhood (see sigmaSpace ) will be mixed together, resulting in larger areas of semi-equal color.
+#    sigmaSpace - Filter sigma in the coordinate space. A larger value of the parameter means that farther pixels will influence each other as long as their colors are close enough (see sigmaColor ). When d>0 , it specifies the neighborhood size regardless of sigmaSpace . Otherwise, d is proportional to sigmaSpace .
+#
+# bilateralFilter(src, d, sigmaColor, sigmaSpace)
 
 MIN_DENSITY = 50
 SPATIAL_RADIUS = 8
@@ -51,7 +66,7 @@ def saveSegments(original,labels,SHOW,out_dir,category):
     #get information about the segments
     mean = np.mean(size_array)
     total = np.sum(size_array)
-    count = len(unique_labels)
+    t_count = len(unique_labels)
 
     #remove markers given condition ange get unique markers again
     for k in size_dict.keys():
@@ -74,37 +89,20 @@ def saveSegments(original,labels,SHOW,out_dir,category):
         cropped = segment[y:y+h,x:x+w]
         cropped = np.uint8(cropped)
         resized = cv2.resize(cropped,(256, 256), interpolation = cv2.INTER_CUBIC)
-        img = cv2.cvtColor(resized,cv2.COLOR_BGR2RGB)
 
-        f_out =  out_dir + category + str(count) + '.png'
+        f_out =  out_dir + str(count) + "_" + category
 
-        fig = plt.figure()
-        plt.imshow(img)
-        fig.savefig(f_out)
+        cv2.imwrite(f_out,resized)
+
         if(SHOW):
-            plt.show()
-        plt.close(fig)
+            cv2.imshow(resized)
+            cv2.waitKey(0)
 
         count = count + 1
 
-    print("reduced count: " + count)
+    print("original count: %s     reduced count: %s     category: %s" % (str(t_count),str(count),str(category)))
 
 ###############################################################################################################################
-###############################################################################################################################
-#Documentation
-########################################################################
-#BilateralFilter
-########################################################################
-#http://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html?highlight=bilateralfilter#bilateralfilter
-########################################################################
-#Prameters:
-#    src - src image
-#    dst - Destination image of the same size and type as src .
-#    d - Diameter of each pixel neighborhood that is used during filtering. If it is non-positive, it is computed from sigmaSpace .
-#    sigmaColor - Filter sigma in the color space. A larger value of the parameter means that farther colors within the pixel neighborhood (see sigmaSpace ) will be mixed together, resulting in larger areas of semi-equal color.
-#    sigmaSpace - Filter sigma in the coordinate space. A larger value of the parameter means that farther pixels will influence each other as long as their colors are close enough (see sigmaColor ). When d>0 , it specifies the neighborhood size regardless of sigmaSpace . Otherwise, d is proportional to sigmaSpace .
-#
-# bilateralFilter(src, d, sigmaColor, sigmaSpace)
 
 
 ########################################################################

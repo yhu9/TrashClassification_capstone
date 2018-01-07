@@ -27,10 +27,10 @@ NN_CLASSES      = 4
 NN_EPOCHS       = 1000
 NN_BATCHSIZE    = 250
 NN_LEARNING_RATE = 0.001               #Learning rate for training the CNN
-CAT1            = "cardboard"
-CAT2            = "construction"
-CAT3            = "plywood"
-CAT4            = "treematter"
+CAT1            = "treematter"
+CAT2            = "plywood"
+CAT3            = "cardboard"
+CAT4            = "construction"
 CAT1_ONEHOT     = [1,0,0,0]
 CAT2_ONEHOT     = [0,1,0,0]
 CAT3_ONEHOT     = [0,0,1,0]
@@ -41,7 +41,7 @@ CNN_INPUT        = 784
 CNN_LAYER1 = 10                  #Number of features output for conv layer 1
 CNN_LAYER2 = 4                  #Number of features output for conv layer 2
 CNN_CLASSES      = 10
-CNN_EPOCHS       = 10000
+CNN_EPOCHS       = 300
 
 
 

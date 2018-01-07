@@ -220,7 +220,6 @@ def extractEdgeDistribution(imageIn, uq_mark, markers, SHOW, time):
     #get the bounding rectangle of the image crop the region with a green border
     grey = cv2.cvtColor(blank,cv2.COLOR_BGR2GRAY)
     x,y,w,h = cv2.boundingRect(grey)
-    cv2.rectangle(region,(x,y),(x+w,y+h),(0,255,0),2)
     cropped = region[y:y+h,x:x+w]
     cropped = np.uint8(cropped)
 
