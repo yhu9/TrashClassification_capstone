@@ -1,25 +1,13 @@
 
 
-CONTAINER_SIZE = 1000               #size of the container
-OUTPUT_SIZE = 20                    #size of the image after reading and altering the original image
-N = 1                               #Number of instances of brain images
-N_CLASSES = 10                       #Number of different classifications
-BLUR_COEF = 1.0 / 7.0               #Blurring Coefficient
-IMAGE_SIZE = 20                     #This should be the same as output size
-IMAGE_DEPTH = 20                    #This should be the same as the output size
-IMAGE_CHANNELS = 1                  #Number of color channels
-STEPS = 10                      #Number of steps for training
-BATCH_SIZE = 2                      #Batch size
-LEARNING_RATE = 0.01               #Learning rate for training the CNN
-OPTIMIZER = "SGD"                   #Loss function optimization algorithm. other options: {SGD,Adam,Adagrad,Ftrl,Momentum,RMSProp}
-N_FEAT_FULL1 = 1024                 #Number of features output for fully connected layer1
 KEEP_RATE = 0.8                     #Rate of dropping out in the dropout layer
 LOG_DIR = "../ops_logs"             #Directory where the logs would be stored for visualization of the training
-DIRECTORY = "../test_data/"         #Directory where the input data is stored
-STEPS_RECORD = 2                   #Number of steps to record data
 
 #Neural network constants
-NN_LEARNING_RATE = 0.001               #Learning rate for training the CNN
+cat1_dir = "../categories/treematter/ingroup/"
+cat2_dir = "../categories/plywood/ingroup/"
+cat3_dir = "../categories/cardboard/ingroup/"
+cat4_dir = "../categories/construction_waste/ingroup/"
 CAT1            = "treematter"
 CAT2            = "plywood"
 CAT3            = "cardboard"
@@ -28,13 +16,23 @@ CAT1_ONEHOT     = [1,0,0,0]
 CAT2_ONEHOT     = [0,1,0,0]
 CAT3_ONEHOT     = [0,0,1,0]
 CAT4_ONEHOT     = [0,0,0,1]
-
-#Neural network constants
+LEARNING_RATE = 0.01               #Learning rate for training the CNN
 CNN_INPUT        = 784
-CNN_LAYER1 = 10                  #Number of features output for conv layer 1
+CNN_LAYER1 = 6                  #Number of features output for conv layer 1
 CNN_LAYER2 = 4                  #Number of features output for conv layer 2
-CNN_CLASSES      = 10
-CNN_EPOCHS       = 300
+CNN_CLASSES      = 4
+CNN_EPOCHS       = 7000
+CNN_FULL1   = 1024                 #Number of features output for fully connected layer1
+IMG_WIDTH   = 28
+IMG_HEIGHT  = 28
+IMG_DEPTH   = 3
+CAT_WIDTH = 500
+CAT_HEIGHT = 500
+KEEP_RATE = 0.85
 
+'''
+applies Dropout to the input.
 
+Dropout consists in randomly setting a fraction rate of input units to 0 at each update during training time, which helps prevent overfitting. The units that are kept are scaled by 1 / (1 - rate), so that their sum is unchanged at training time and inference time.
+'''
 

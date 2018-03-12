@@ -1,6 +1,6 @@
-source/cnn/segments/
 source/categories/
 source/CervicalCells/
 source/classification/
 source/big_radial_models/
 source/ops_logs/
+source/segments

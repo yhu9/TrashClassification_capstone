@@ -37,17 +37,6 @@ def test_getSegments(imageFileIn,showFlag):
     output = segmentModule.normalizeImage(imageFileIn)
     image, markers = segmentModule.getSegments(output,showFlag)
 
-def test_saveSegments(img_dir):
-
-    args = os.listdir(img_dir)
-    out_dir = 'segments/'
-    for f in args:
-        full_dir = img_dir + f
-
-        image = segmentModule.normalizeImage(full_dir)
-        original, labels = segmentModule.getSegments(image,False)
-        segmentModule.saveSegments(original,labels,False,out_dir,f)
-
 def create_histogram():
     image = np.array([2,4,5,6])
 

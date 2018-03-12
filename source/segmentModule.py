@@ -121,7 +121,6 @@ def saveSegments(original,labels,SHOW,out_dir,category):
 def getSegments(original, SHOW):
     allimages["original"] = original
     ##############################################################################################################
-
     #gaussian Blur
     #blur = cv2.GaussianBlur(gray_img,(5,5),0)
     #allimages["gaussianBlur"] = blur
@@ -144,7 +143,6 @@ def getSegments(original, SHOW):
         blank[ labels_image == label] = [b,g,r]
 
     allimages["shift segmentation"] = blank
-
     ################################################################################
     ################################################################################
     ################################################################################
@@ -176,6 +174,7 @@ def getSegments(original, SHOW):
                 cv2.resizeWindow(key,width,height)
                 cv2.moveWindow(key, width * col, height * row)
                 imgCount += 1
+
         ########################################################
         #The else isn't ever used but I left it since more images may want to be added during a SHOW
         else:

@@ -45,13 +45,11 @@ KERNAL6 = np.array(K6,dtype=float)/8
 #
 #Setting the show flag allows the user to specify how slowly they would like to see the histogram
 #distribution extraction for each region.
-
 #############################################################################################################
 #############################################################################################################
 def extractAllSegments(imageIn,markers,mode,SHOW):
     features = []
     uniqueMarkers = np.unique(markers)
-
     time = 0
 
     #skip 0 because thats the marker for uknown areas separating the regions
@@ -76,7 +74,6 @@ def extractAllSegments(imageIn,markers,mode,SHOW):
             feature = np.append(feature1,feature2)
             features.append([feature])
     return features
-
 
 #for extracting high quality features to train on using selected segments from the image
 #1. segments must greater than the average size
@@ -208,7 +205,7 @@ def extractEdgeDistribution(imageIn, uq_mark, markers, SHOW, time):
     #necessary for seeing the plots in sequence with one click of a key
     plt.ion() #sets plots to interactive mode
 
-    # make  copy of the image
+    # make a copy of the image
     region = imageIn.copy()
     region[markers != uq_mark] = [0,0,0]
 
